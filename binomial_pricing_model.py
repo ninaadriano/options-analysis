@@ -4,7 +4,7 @@ import pandas as pd
 class BinomialPricingModel:
     # Problem setup for Binomial option pricing model for European and American options
     # S = price of the underlying asset, K = option strike price, r = risk-free rate, T = time to maturity,
-    # n = number of time steps, u = up movement factor, d = down movement factor, currently ignoring dividends
+    # n = number of time steps, u = up movement factor, d = down movement factor, currently ignoring dividends (c)
 
     # Underlying price at timestep n: S_n = S_0 * u^n * d^(n-m),
     # where m is the number of up movements (n-m is the number of down movements)
@@ -12,15 +12,16 @@ class BinomialPricingModel:
 
     # Call option value at timestep n: C_n = max(S_n - K, 0)
     # Put option value at timestep n: P_n = max(K - S_n, 0)
-    def __init__(self, S_0, K, r, T, n, u, option_type):
+    def __init__(self, S_0, K, r, T, n, u, option_type, c=0):
         self.S_0 = S_0
         self.K = K
         self.r = r
         self.T = T
         self.n = n
+        self.c = c
         self.u = u
         self.d = 1 / u
-        self.q = (np.exp(r * T / n) - self.d) / (self.u - self.d)
+        self.q = (np.exp((r - c) * T / n) - self.d) / (self.u - self.d)
         self.option_type = option_type
         self.price_tree = self.initialise_underlying_price_tree()
         self.option_value_tree = self.find_option_value_tree()
@@ -78,6 +79,9 @@ class BinomialPricingModel:
                 print(f"First possible time of early exercise with American option: {i}")
                 stop = True
             i += 1
+
+    def option_price(self):
+        return self.option_value_tree[0, 0]
 
 # Example usage
 model = BinomialPricingModel(S_0=100, K=100, r=0.1194, T=0.25, n=10, u=1.03775, option_type='put')
